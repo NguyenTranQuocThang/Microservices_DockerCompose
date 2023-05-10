@@ -1,0 +1,62 @@
+version: '3.7'
+services:
+  client00:
+    image: nguyentranquocthangse/mv3-url-servies-client:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8000:8000"
+    networks:
+      - currency-network
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.CONFIG.IMPORT: optional:configserver:http://config-server:8080/
+
+  naming-server:
+    image: nguyentranquocthangse/mv3-naming-server:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8761:8761"
+    networks:
+      - currency-network
+
+  config-server:
+    image: nguyentranquocthangse/mv3-config-server:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8080:8080"
+    networks:
+      - currency-network
+    healthcheck:
+      test: "exit 0"
+
+  api-gateway:
+    image: nguyentranquocthangse/mv3-api-gateway:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8765:8765"
+    depends_on:
+      - naming-server
+    networks:
+      - currency-network
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+
+  client01:
+    image: nguyentranquocthangse/mv3-url-services-client_01:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8100:8100"
+    networks:
+      - currency-network
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.CONFIG.IMPORT: optional:configserver:http://config-server:8080/
+
+networks:
+  currency-network:
